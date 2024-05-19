@@ -1,24 +1,31 @@
+app: voucher-management
 service: voucher-management
-
-frameworkVersion: "2"
+frameworkVersion: "3"
+useDotenv: true
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs20.x
   region: us-east-1
   environment:
     TABLE_NAME: vouchers
     TZ: "Africa/Lagos"
 
+plugins:
+  - serverless-plugin-typescript
+  - serverless-dotenv-plugin
+  - serverless-dynamodb
+  - serverless-offline
+
 functions:
   generateVoucher:
-    handler: src/handlers/voucher/generateVoucherHandler.handler
+    handler: src/handlers/voucher/generateVoucher.handler
     events:
       - http:
           path: vouchers/generate
           method: post
   retrieveVoucher:
-    handler: src/handlers/voucher/retrieveVoucherHandler.handler
+    handler: src/handlers/voucher/retrieveVoucher.handler
     events:
       - http:
           path: vouchers/{code}
