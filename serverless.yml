@@ -6,16 +6,52 @@ useDotenv: true
 provider:
   name: aws
   runtime: nodejs20.x
+  architecture: x86_64
+  stage: ${opt:stage, 'dev'}
   region: us-east-1
+  memorySize: 512
+  timeout: 28
+  stackName: voucher-management-${opt:stage, 'dev'}
+  deploymentMethod: changesets
   environment:
-    TABLE_NAME: vouchers
-    TZ: "Africa/Lagos"
+    DYNAMODB_ENDPOINT: ${env:DYNAMODB_ENDPOINT}
+    VOUCHER_TABLE: ${env:TABLE_NAME}
+    TZ: ${env:TZ}
+  httpApi:
+    cors: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - "dynamodb:*"
+          Resource: "*"
 
 plugins:
   - serverless-plugin-typescript
   - serverless-dotenv-plugin
   - serverless-dynamodb
   - serverless-offline
+
+custom:
+  serverless-dynamodb:
+    stages:
+      - dev
+    start:
+      docker: true
+      port: 8092
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+      migrate: true
+      seed: true
+      volume: true
+      convertEmptyValues: true
+    migration:
+      dir: offline/migrations
+  esbuild:
+    watch:
+      pattern: "src/**/*.ts"
 
 functions:
   generateVoucher:
@@ -42,7 +78,7 @@ resources:
     VouchersTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:provider.environment.TABLE_NAME}
+        TableName: ${self:provider.environment.VOUCHER_TABLE}
         AttributeDefinitions:
           - AttributeName: code
             AttributeType: S
