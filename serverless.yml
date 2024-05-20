@@ -5,7 +5,7 @@ useDotenv: true
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs18.x
   architecture: x86_64
   stage: ${opt:stage, 'dev'}
   region: us-east-1
